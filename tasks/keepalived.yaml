@@ -1,0 +1,37 @@
+---
+- name: Set keepalived_password
+  ansible.builtin.set_fact:
+    keepalived_password:
+  when: keepalived_password is not defined
+
+- name: Set keepalived_iface
+  ansible.builtin.set_fact:
+    keepalived_iface:
+  when: keepalived_iface is not defined
+
+- name: Set keepalived_state
+  ansible.builtin.set_fact:
+    keepalived_state:
+  when: keepalived_iface is not defined
+
+- block:
+  - name: Install keepalived
+    ansible.builtin.package:
+      name: keepalived
+      state: latest
+
+  - name: Load keepalived.conf
+    ansible.builtin.template:
+      src: keepalived.conf.j2
+      dest: /etc/keepalived
+      owner: root
+      group: root
+      mode: 0644
+
+  - name: Enable and start keepalived
+    ansible.builtin.systemd: 
+      name: keepalived
+      state: restarted
+      enabled: true
+  become: true
+  

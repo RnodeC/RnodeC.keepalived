@@ -1,0 +1,3 @@
+---
+keepalived_enabled: false
+keepalived_floating_ip: 10.0.0.10

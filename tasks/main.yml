@@ -1,0 +1,4 @@
+---
+- name: Keepalived 
+  include_tasks: keepalived.yaml 
+  when: keepalived_enabled

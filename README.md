@@ -1,12 +1,12 @@
 rnodec.nodestrap
 =========
 
-This ansible role sets up keepalived
+This ansible role sets up keepalived, which shares a vip across a cluster of servers.
 
 Requirements
 ------------
 
-Three linux servers
+Three linux servers.
 
 Role Variables
 --------------

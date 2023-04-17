@@ -2,5 +2,10 @@
 - name: Converge
   hosts: all
 
+  vars: 
+    keepalived_floating_ip: 172.17.0.48
+    keepalived_enabled: true
+    keepalived_password: makinthingsidempotent
+
   roles:
   - RnodeC.keepalived

@@ -1,17 +1,27 @@
 ---
-- name: Set keepalived_password
+- name: Generate keepalived_password
   ansible.builtin.set_fact:
-    keepalived_password:
+    keepalived_password: "{{ lookup('password', '/dev/null',  length=12) }}"
   when: keepalived_password is not defined
 
-- name: Set keepalived_iface
-  ansible.builtin.set_fact:
-    keepalived_iface:
-  when: keepalived_iface is not defined
+- name: Debug ansible_interfaces
+  debug:
+    var: ansible_interfaces
 
-- name: Set keepalived_state
+- name: Debug extracted interfaces
+  debug:
+    var: ansible_interfaces | map('extract', ansible_facts) | list
+
+- name: Find primary network interface
+  set_fact:
+    primary_interface: "{{ non_loopback_interfaces.0.device }}"
+  vars:
+    non_loopback_interfaces: "{{ ansible_interfaces | map('extract', ansible_facts) | selectattr('ipv4', 'defined') | selectattr('type', 'ne', 'loopback') | list }}"
+- debug: var=primary_interface
+
+- name: Default keepalived_iface to primary_interface if not provided
   ansible.builtin.set_fact:
-    keepalived_state:
+    keepalived_iface: "{{ primary_interface }}"
   when: keepalived_iface is not defined
 
 - block:
@@ -27,11 +37,11 @@
       owner: root
       group: root
       mode: 0644
+    notify: restart keepalived
 
   - name: Enable and start keepalived
     ansible.builtin.systemd: 
       name: keepalived
-      state: restarted
+      state: started
       enabled: true
   become: true
-  

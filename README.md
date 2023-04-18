@@ -16,7 +16,7 @@ If `keepalived_enabled` is set to `true` (default is `false`), these variables m
 
 These variables are optional:
 * `keepalived_iface`: the interface for keepalived to bind to.  default is the primary interface that ansible sees. 
-* `keepalived_hostname` & `keepalived_domain`: if provided, update /etc/hosts to map fqdn to the vip 
+* `keepalived_fqdn`: if provided, update /etc/hosts to map fqdn to the vip 
 
 Dependencies
 ------------

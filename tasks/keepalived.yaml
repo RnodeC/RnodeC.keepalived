@@ -56,11 +56,10 @@
 
   - name: Update /etc/hosts
     ansible.builtin.lineinfile:
-    path: /etc/hosts
-    regexp: "^{{ keepalived_vip }} {{ keepalived_hostname }} {{ keepalived_domain }}"
-    line: "{{ keepalived_vip }} {{ keepalived_hostname }} {{ keepalived_domain }}"
-    state: present
+      path: /etc/hosts
+      regexp: "^{{ keepalived_vip }} {{ keepalived_fqdn }}"
+      line: "{{ keepalived_vip }} {{ keepalived_fqdn }}"
+      state: present
     when: 
-    - keepalived_hostname is defined 
-    - keepalived_domain is defined
+    - keepalived_fqdn is defined 
   become: true

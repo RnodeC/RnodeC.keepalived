@@ -1,14 +1,23 @@
 ---
+- name: Fail if keepalived_floating_ip is not defined
+  ansible.builtin.fail:
+    msg: "The variable 'keepalived_floating_ip' is not defined"
+  when: keepalived_floating_ip is not defined
+
 - name: Generate keepalived_password
   ansible.builtin.set_fact:
     keepalived_password: "{{ lookup('password', '/dev/null',  length=12) }}"
   when: keepalived_password is not defined
 
-- name: Debug ansible_interfaces
+- name: Display ansible_interfaces for debugging
   debug:
     var: ansible_interfaces
 
-- name: Debug extracted interfaces
+- name: Display non_loopback_interfaces for debugging
+  debug:
+    var: non_loopback_interfaces
+
+- name: Display extracted interfaces for debugging
   debug:
     var: ansible_interfaces | map('extract', ansible_facts) | list
 

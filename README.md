@@ -1,4 +1,4 @@
-rnodec.nodestrap
+rnodec.keepalived
 =========
 
 This ansible role sets up keepalived, which shares a vip across a cluster of servers.

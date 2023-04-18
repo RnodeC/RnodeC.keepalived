@@ -3,10 +3,10 @@
   hosts: all
 
   vars:
-    keepalived_floating_ip: 172.17.0.48 # must be same in converge.yaml
+    keepalived_vip: 172.17.0.48 # must be same in converge.yaml
 
   tasks:
-  - name: Ping keepalived_floating_ip
+  - name: Ping keepalived_vip
     ansible.builtin.command: "ping -c 4 {{ keepalived_floating_ip }}"
     register: ping_result
     delegate_to: localhost

@@ -1,8 +1,8 @@
 ---
-- name: Fail if keepalived_floating_ip is not defined
+- name: Fail if keepalived_vip is not defined
   ansible.builtin.fail:
-    msg: "The variable 'keepalived_floating_ip' is not defined"
-  when: keepalived_floating_ip is not defined
+    msg: "The variable 'keepalived_vip' is not defined"
+  when: keepalived_vip is not defined
 
 - name: Generate keepalived_password
   ansible.builtin.set_fact:
@@ -53,4 +53,14 @@
       name: keepalived
       state: started
       enabled: true
+
+  - name: Update /etc/hosts
+    ansible.builtin.lineinfile:
+    path: /etc/hosts
+    regexp: "^{{ keepalived_vip }} {{ keepalived_hostname }} {{ keepalived_domain }}"
+    line: "{{ keepalived_vip }} {{ keepalived_hostname }} {{ keepalived_domain }}"
+    state: present
+    when: 
+    - keepalived_hostname is defined 
+    - keepalived_domain is defined
   become: true

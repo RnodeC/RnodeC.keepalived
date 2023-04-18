@@ -9,6 +9,6 @@ vrrp_instance VI_1 {
         auth_pass {{ keepalived_password }}
     }
     virtual_ipaddress {
-        {{ keepalived_floating_ip }}
+        {{ keepalived_vip }}
     }
 }

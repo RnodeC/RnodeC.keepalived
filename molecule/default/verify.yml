@@ -7,7 +7,7 @@
 
   tasks:
   - name: Ping keepalived_vip
-    ansible.builtin.command: "ping -c 4 {{ keepalived_floating_ip }}"
+    ansible.builtin.command: "ping -c 4 {{ keepalived_vip }}"
     register: ping_result
     delegate_to: localhost
     changed_when: false

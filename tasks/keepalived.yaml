@@ -4,33 +4,47 @@
     msg: "The variable 'keepalived_vip' is not defined"
   when: keepalived_vip is not defined
 
-- name: Generate keepalived_password
+- name: Generate keepalived_password on the first host in play_hosts
   ansible.builtin.set_fact:
-    keepalived_password: "{{ lookup('password', '/dev/null',  length=12) }}"
+    keepalived_password: "{{ lookup('community.general.random_string', length=8, special=false) }}"
+  when: keepalived_password is not defined
+  delegate_to: "{{ play_hosts[0] }}"
+  run_once: true
+
+- name: Set keepalived_password for all nodes in the play
+  ansible.builtin.set_fact:
+    keepalived_password: "{{ hostvars[play_hosts[0]].keepalived_password }}"
   when: keepalived_password is not defined
 
-- name: Display ansible_interfaces for debugging
-  debug:
-    var: ansible_interfaces
+- debug: var=keepalived_password
+  when: debug | default(false) | bool
 
-- name: Display non_loopback_interfaces for debugging
-  debug:
-    var: non_loopback_interfaces
+- block:
+  - name: Display ansible_interfaces for debugging
+    debug:
+      var: ansible_interfaces
+    when: debug | default(false) | bool
 
-- name: Display extracted interfaces for debugging
-  debug:
-    var: ansible_interfaces | map('extract', ansible_facts) | list
+  - name: Display non_loopback_interfaces for debugging
+    debug:
+      var: non_loopback_interfaces
+    when: debug | default(false) | bool
 
-- name: Find primary network interface
-  set_fact:
-    primary_interface: "{{ non_loopback_interfaces.0.device }}"
-  vars:
-    non_loopback_interfaces: "{{ ansible_interfaces | map('extract', ansible_facts) | selectattr('ipv4', 'defined') | selectattr('type', 'ne', 'loopback') | list }}"
-- debug: var=primary_interface
+  - name: Display extracted interfaces for debugging
+    debug:
+      var: ansible_interfaces | map('extract', ansible_facts) | list
+    when: debug | default(false) | bool
 
-- name: Default keepalived_iface to primary_interface if not provided
-  ansible.builtin.set_fact:
-    keepalived_iface: "{{ primary_interface }}"
+  - name: Find primary network interface
+    set_fact:
+      primary_interface: "{{ non_loopback_interfaces.0.device }}"
+    vars:
+      non_loopback_interfaces: "{{ ansible_interfaces | map('extract', ansible_facts) | selectattr('ipv4', 'defined') | selectattr('type', 'ne', 'loopback') | list }}"
+  - debug: var=primary_interface
+
+  - name: Default keepalived_iface to primary_interface if not provided
+    ansible.builtin.set_fact:
+      keepalived_iface: "{{ primary_interface }}"
   when: keepalived_iface is not defined
 
 - block:
@@ -39,20 +53,18 @@
       name: keepalived
       state: latest
 
+  - debug:
+      msg: "keepalived_iface = {{ keepalived_iface }}\n
+            keepalived_vip = {{ keepalived_vip }}"
+    
   - name: Load keepalived.conf
     ansible.builtin.template:
       src: keepalived.conf.j2
-      dest: /etc/keepalived
+      dest: /etc/keepalived/keepalived.conf
       owner: root
       group: root
       mode: 0644
     notify: restart keepalived
-
-  - name: Enable and start keepalived
-    ansible.builtin.systemd: 
-      name: keepalived
-      state: started
-      enabled: true
 
   - name: Update /etc/hosts
     ansible.builtin.lineinfile:
@@ -63,3 +75,30 @@
     when: 
     - keepalived_fqdn is defined 
   become: true
+
+- block:
+  - name: Create keepalived_script group
+    ansible.builtin.group:
+      name: keepalived_script
+      state: present
+
+  - name: Create keepalived_script user
+    ansible.builtin.user:
+      name: keepalived_script
+      group: keepalived_script
+      system: yes
+      create_home: no
+      state: present
+
+  - name: Include check_rke2.sh script
+    ansible.builtin.copy: 
+      src: check_rke2.sh
+      dest: /etc/keepalived/check_rke2.sh
+      owner: keepalived_script
+      group: keepalived_script
+      mode: 0755
+  become: true
+  when: rke2_enabled | default(true) | bool
+
+# run restart keepalived now
+- meta: flush_handlers 

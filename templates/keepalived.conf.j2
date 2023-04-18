@@ -1,9 +1,23 @@
+global_defs {
+    router_id {{ ansible_hostname }}
+    script_security
+    script_user keepalived_script
+}
+
+vrrp_script check_rke2_status {
+    script "/etc/keepalived/check_rke2.sh"
+    interval 2
+    fall 2
+    rise 2
+}
+
 vrrp_instance VI_1 {
     state BACKUP
     interface {{ keepalived_iface }}
     virtual_router_id 51
     priority 100
     advert_int 1
+    nopreempt
     authentication {
         auth_type PASS
         auth_pass {{ keepalived_password }}
@@ -11,4 +25,8 @@ vrrp_instance VI_1 {
     virtual_ipaddress {
         {{ keepalived_vip }}
     }
+    track_script {
+        check_rke2_status
+    }
 }
+

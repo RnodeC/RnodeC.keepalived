@@ -8,6 +8,7 @@
     keepalived_password: makinthingsidempotent
     keepalived_hostname: cluster
     keepalived_domain: local
+    debug: true
 
   roles:
   - RnodeC.keepalived

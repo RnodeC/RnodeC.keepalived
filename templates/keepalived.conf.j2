@@ -1,7 +1,7 @@
 global_defs {
     router_id {{ ansible_hostname }}
     script_security
-    script_user keepalived_script
+    script_user root
 }
 
 vrrp_script check_rke2_status {

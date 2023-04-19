@@ -77,26 +77,26 @@
   become: true
 
 - block:
-  - name: Create keepalived_script group
-    ansible.builtin.group:
-      name: keepalived_script
-      state: present
+  #- name: Create keepalived_script group
+  #  ansible.builtin.group:
+  #    name: keepalived_script
+  #    state: present
 
-  - name: Create keepalived_script user
-    ansible.builtin.user:
-      name: keepalived_script
-      group: keepalived_script
-      system: yes
-      create_home: no
-      state: present
+  #- name: Create keepalived_script user
+  #  ansible.builtin.user:
+  #    name: keepalived_script
+  #    group: keepalived_script
+  #    system: yes
+  #    create_home: no
+  #    state: present
 
   - name: Include check_rke2.sh script
     ansible.builtin.copy: 
       src: check_rke2.sh
       dest: /etc/keepalived/check_rke2.sh
-      owner: keepalived_script
-      group: keepalived_script
-      mode: 0755
+      owner: root
+      group: root
+      mode: 0700
   become: true
   when: rke2_enabled | default(true) | bool
 

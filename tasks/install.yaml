@@ -51,12 +51,13 @@
   - name: Install keepalived
     ansible.builtin.package:
       name: keepalived
-      state: latest
+      state: "{{ 'latest' if keepalived_action == 'upgrade' else 'present' }}"
+    notify: restart keepalived
 
   - debug:
-      msg: "keepalived_iface = {{ keepalived_iface }}\n
-            keepalived_vip = {{ keepalived_vip }}"
-    
+      msg: "keepalived_iface = {{ keepalived_iface }}{{ '\n' }}keepalived_vip = {{ keepalived_vip }}"
+    when: debug | default(false) | bool
+
   - name: Load keepalived.conf
     ansible.builtin.template:
       src: keepalived.conf.j2
@@ -77,19 +78,6 @@
   become: true
 
 - block:
-  #- name: Create keepalived_script group
-  #  ansible.builtin.group:
-  #    name: keepalived_script
-  #    state: present
-
-  #- name: Create keepalived_script user
-  #  ansible.builtin.user:
-  #    name: keepalived_script
-  #    group: keepalived_script
-  #    system: yes
-  #    create_home: no
-  #    state: present
-
   - name: Include check_rke2.sh script
     ansible.builtin.copy: 
       src: check_rke2.sh
@@ -98,7 +86,7 @@
       group: root
       mode: 0700
   become: true
-  when: rke2_enabled | default(true) | bool
+  when: keepalived_rke2_enabled
 
 # run restart keepalived now
 - meta: flush_handlers 

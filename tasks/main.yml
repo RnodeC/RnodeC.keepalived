@@ -1,4 +1,8 @@
 ---
-- name: Keepalived 
-  include_tasks: keepalived.yaml 
-  when: keepalived_enabled
+- name: Install Keepalived 
+  include_tasks: install.yaml 
+  when: keepalived_action in ['install', 'upgrade']
+
+- name: Remove Keepalived
+  include_tasks: teardown.yaml
+  when: keepalived_action == 'teardown'

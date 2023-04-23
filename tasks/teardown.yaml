@@ -1,0 +1,24 @@
+- block:
+  - name: Install keepalived
+    ansible.builtin.package:
+      name: keepalived
+      state: absent
+    
+  - name: Remove keepalived.conf
+    ansible.builtin.file:
+      name: keepalived.conf.j2
+      state: absent
+
+  - name: Remove check_rke2.sh script
+    ansible.builtin.file:
+      name: /etc/keepalived/check_rke2.sh
+      state: absent
+
+  - name: Remove keepalived_vip from /etc/hosts
+    ansible.builtin.lineinfile:
+      path: /etc/hosts
+      regexp: "^{{ keepalived_vip }}"
+      state: absent
+    when: 
+    - keepalived_vip is defined 
+  become: true

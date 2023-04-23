@@ -1,6 +1,6 @@
 #!/bin/bash
 
-LOG_FILE=/tmp/check_rke2.sh
+LOG_FILE=/tmp/keepalived_check_rke2.sh
 
 rm -f $LOG_FILE
 touch $LOG_FILE

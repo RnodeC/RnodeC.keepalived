@@ -1,15 +1,19 @@
 global_defs {
     router_id {{ ansible_hostname }}
+{% if keepalived_rke2_enabled %}
     script_security
     script_user root
+{% endif %}
 }
 
+{% if keepalived_rke2_enabled %}
 vrrp_script check_rke2_status {
     script "/etc/keepalived/check_rke2.sh"
     interval 2
     fall 2
     rise 2
 }
+{% endif %}
 
 vrrp_instance VI_1 {
     state BACKUP
@@ -25,8 +29,10 @@ vrrp_instance VI_1 {
     virtual_ipaddress {
         {{ keepalived_vip }}
     }
+{% if keepalived_rke2_enabled %}
     track_script {
         check_rke2_status
     }
+{% endif %}
 }
 

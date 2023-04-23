@@ -1,2 +1,3 @@
 ---
-keepalived_enabled: false
+keepalived_action: install
+keepalived_rke2_enabled: false

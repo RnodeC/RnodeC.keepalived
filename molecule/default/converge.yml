@@ -4,7 +4,7 @@
 
   vars: 
     keepalived_vip: 172.17.0.48 # must be same in verify.yaml
-    keepalived_enabled: true
+    keepalived_action: install
     keepalived_password: makinthingsidempotent
     keepalived_hostname: cluster
     keepalived_domain: local

@@ -6,7 +6,7 @@
     
   - name: Remove keepalived.conf
     ansible.builtin.file:
-      name: keepalived.conf.j2
+      name: /etc/keepalived/keepalived.conf
       state: absent
 
   - name: Remove check_rke2.sh script

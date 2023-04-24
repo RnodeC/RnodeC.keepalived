@@ -48,6 +48,11 @@
   when: keepalived_iface is not defined
 
 - block:
+  - name: Update apt cache 
+    apt:
+      update_cache: true
+      cache_valid_time: 3600
+      
   - name: Install keepalived
     ansible.builtin.package:
       name: keepalived

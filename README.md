@@ -11,12 +11,15 @@ Three linux servers.
 Role Variables
 --------------
 
-If `keepalived_enabled` is set to `true` (default is `false`), these variables must be provided:
+*`keepalived_action`: install|upgrade|teardown
+
+required:
 * `keepalived_vip`: the reserved ip on this network that the cluster will use
 
-These variables are optional:
+optional:
 * `keepalived_iface`: the interface for keepalived to bind to.  default is the primary interface that ansible sees. 
 * `keepalived_fqdn`: if provided, update /etc/hosts to map fqdn to the vip 
+* `keepalived_rke2_enabled`: set up a health check for rke2 
 
 Dependencies
 ------------

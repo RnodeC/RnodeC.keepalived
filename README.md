@@ -30,17 +30,17 @@ None
 Example Playbook
 ----------------
 
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
+```bash
+- hosts: servers
 
-    - hosts: servers
+  vars: 
+    keepalived_enabled: true 
+    keepalived_vip: 192.168.0.100
+    keepalived_fqdn: servervip.local
 
-      vars: 
-        keepalived_enabled: true 
-        keepalived_vip: 192.168.0.100
-        keepalived_fqdn: servervip.local
-
-      roles:
-      - RnodeC.keepalived
+  roles:
+  - RnodeC.keepalived
+```
 
 Author Information
 ------------------

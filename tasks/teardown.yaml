@@ -1,5 +1,5 @@
 - block:
-  - name: Install keepalived
+  - name: Remove keepalived
     ansible.builtin.package:
       name: keepalived
       state: absent

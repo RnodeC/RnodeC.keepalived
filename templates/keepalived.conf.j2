@@ -1,7 +1,7 @@
 global_defs {
     router_id {{ ansible_hostname }}
 {% if keepalived_rke2_enabled %}
-    script_security
+    enable_script_security
     script_user root
 {% endif %}
 }

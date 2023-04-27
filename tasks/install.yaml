@@ -83,16 +83,56 @@
     - keepalived_fqdn is defined 
   become: true
 
-- block:
-  - name: Include check_rke2.sh script
-    ansible.builtin.copy: 
-      src: check_rke2.sh
-      dest: /etc/keepalived/check_rke2.sh
-      owner: root
-      group: root
-      mode: 0700
+- name: Include check_rke2.sh script
+  ansible.builtin.copy: 
+    src: check_rke2.sh
+    dest: /etc/keepalived/check_rke2.sh
+    owner: root
+    group: root
+    mode: 0700
   become: true
   when: keepalived_rke2_enabled
+
+- block:
+  - name: Copy custom SELinux policy file to target host
+    ansible.builtin.copy:
+      src: keepalived_custom_policy.te
+      dest: /tmp/keepalived_custom_policy.te
+      owner: root
+      group: root
+      mode: '0644'
+
+  - name: Install required SELinux policy utilities
+    ansible.builtin.package:
+      name:
+        - policycoreutils
+        - checkpolicy
+        - policycoreutils-python-utils
+      state: present
+
+  - name: Compile SELinux policy module
+    ansible.builtin.command: checkmodule -M -m -o /tmp/keepalived_custom_policy.mod /tmp/keepalived_custom_policy.te
+
+  - name: Create SELinux policy package
+    ansible.builtin.command: semodule_package -o /tmp/keepalived_custom_policy.pp -m /tmp/keepalived_custom_policy.mod
+
+  - name: Install custom SELinux policy
+    ansible.builtin.command: semodule -i /tmp/keepalived_custom_policy.pp
+
+  - name: Clean up temporary policy files
+    ansible.builtin.file:
+      path: "{{ item }}"
+      state: absent
+    loop:
+      - /tmp/keepalived_custom_policy.te
+      - /tmp/keepalived_custom_policy.mod
+      - /tmp/keepalived_custom_policy.pp
+    when: not debug | default(false) | bool
+  become: true
+  when: 
+  - keepalived_rke2_enabled
+  - ansible_os_family == 'RedHat'
+  - ansible_selinux.status == 'enabled'
 
 # run restart keepalived now
 - meta: flush_handlers 

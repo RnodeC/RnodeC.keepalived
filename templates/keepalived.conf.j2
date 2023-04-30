@@ -8,7 +8,7 @@ global_defs {
 
 {% if keepalived_rke2_enabled %}
 vrrp_script check_rke2_status {
-    script "/etc/keepalived/check_rke2.sh"
+    script "/etc/keepalived/check-rke2.sh"
     interval 2
     fall 2
     rise 2

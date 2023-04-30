@@ -1,4 +1,4 @@
-module keepalived_custom_policy 1.0;
+module keepalived_policy 1.0;
 
 require {
 	type container_var_lib_t;

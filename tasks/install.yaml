@@ -4,6 +4,30 @@
     msg: "The variable 'keepalived_vip' is not defined"
   when: keepalived_vip is not defined
 
+- name: Check if /etc/keepalived/keepalived.conf exists
+  ansible.builtin.stat:
+    path: /etc/keepalived/keepalived.conf
+  register: keepalived_conf_stat
+
+- name: Read /etc/keepalived/keepalived.conf
+  ansible.builtin.slurp:
+    src: /etc/keepalived/keepalived.conf
+  register: keepalived_conf_content
+  when: keepalived_conf_stat.stat.exists
+
+- name: Extract auth_pass value from keepalived.conf
+  ansible.builtin.set_fact:
+    keepalived_password_existing: "{{ (keepalived_conf_content['content'] | b64decode | regex_search('auth_pass[ \\t]+([^ \\n]+)', '\\1'))[0] }}"
+  when: keepalived_conf_stat.stat.exists
+
+- debug: var=keepalived_password_existing
+  when: debug | default(false) | bool
+
+- name: Set keepalived_password to keepalived_password_existing if defined
+  ansible.builtin.set_fact:
+    keepalived_password: "{{ keepalived_password_existing }}"
+  when: keepalived_password_existing is defined
+  
 - name: Generate keepalived_password on the first host in play_hosts
   ansible.builtin.set_fact:
     keepalived_password: "{{ lookup('community.general.random_string', length=8, special=false) }}"
@@ -83,25 +107,26 @@
     - keepalived_fqdn is defined 
   become: true
 
-- name: Include check_rke2.sh script
+- name: Include check-rke2.sh script
   ansible.builtin.copy: 
-    src: check_rke2.sh
-    dest: /etc/keepalived/check_rke2.sh
+    src: check-rke2.sh
+    dest: /etc/keepalived/check-rke2.sh
     owner: root
     group: root
     mode: 0700
   become: true
   when: keepalived_rke2_enabled
 
+### selinux ###
 - block:
-  - name: Copy custom SELinux policy file to target host
+  - name: Copy keepalived SELinux policy file to target host
     ansible.builtin.copy:
-      src: keepalived_custom_policy.te
-      dest: /etc/keepalived/keepalived_custom_policy.te
+      src: keepalived_policy.te
+      dest: /etc/keepalived/keepalived_policy.te
       owner: root
       group: root
       mode: '0644'
-    register: keepalived_custom_policy
+    register: keepalived_policy
 
   - block:
     - name: Install required SELinux policy utilities
@@ -112,15 +137,23 @@
           - policycoreutils-python-utils
         state: present
 
-    - name: Compile SELinux policy module
-      ansible.builtin.command: checkmodule -M -m -o /etc/keepalived/keepalived_custom_policy.mod /etc/keepalived/keepalived_custom_policy.te
+    - name: Compile keepalived SELinux policy module
+      ansible.builtin.command: >
+        checkmodule -M -m -o /etc/keepalived/keepalived_policy.mod /etc/keepalived/keepalived_policy.te
 
-    - name: Create SELinux policy package
-      ansible.builtin.command: semodule_package -o /etc/keepalived/keepalived_custom_policy.pp -m /etc/keepalived/keepalived_custom_policy.mod
+    - name: Create keepalived SELinux policy package
+      ansible.builtin.command: >
+        semodule_package -o /etc/keepalived/keepalived_policy.pp -m /etc/keepalived/keepalived_policy.mod
 
-    - name: Install custom SELinux policy
-      ansible.builtin.command: semodule -i /etc/keepalived/keepalived_custom_policy.pp
-    when: keepalived_custom_policy is changed
+    - name: Install keepalived SELinux policy
+      ansible.builtin.command: >
+        semodule -i /etc/keepalived/keepalived_policy.pp
+      
+    #- name: Apply the new keepalived SELinux file context to ??
+    #  command: >
+    #    restorecon -Rv 
+
+    when: keepalived_policy is changed
   become: true
   when: 
   - keepalived_rke2_enabled

@@ -27,7 +27,7 @@
   ansible.builtin.set_fact:
     keepalived_password: "{{ keepalived_password_existing }}"
   when: keepalived_password_existing is defined
-  
+
 - name: Generate keepalived_password on the first host in play_hosts
   ansible.builtin.set_fact:
     keepalived_password: "{{ lookup('community.general.random_string', length=8, special=false) }}"
@@ -72,12 +72,12 @@
   when: keepalived_iface is not defined
 
 - block:
-  - name: Update apt cache 
+  - name: Update apt cache
     apt:
       update_cache: true
       cache_valid_time: 3600
     when: ansible_os_family == 'Debian'
-    
+
   - name: Install keepalived
     ansible.builtin.package:
       name: keepalived
@@ -103,12 +103,12 @@
       regexp: "^{{ keepalived_vip }} {{ keepalived_fqdn }}"
       line: "{{ keepalived_vip }} {{ keepalived_fqdn }}"
       state: present
-    when: 
-    - keepalived_fqdn is defined 
+    when:
+    - keepalived_fqdn is defined
   become: true
 
 - name: Include check-rke2.sh script
-  ansible.builtin.copy: 
+  ansible.builtin.copy:
     src: check-rke2.sh
     dest: /etc/keepalived/check-rke2.sh
     owner: root
@@ -137,6 +137,12 @@
           - policycoreutils-python-utils
         state: present
 
+    - name: Install required SELinux policy utilities
+      ansible.builtin.package:
+        name: container-selinux
+        state: latest
+      when: keepalived_rke2_enabled
+
     - name: Compile keepalived SELinux policy module
       ansible.builtin.command: >
         checkmodule -M -m -o /etc/keepalived/keepalived_policy.mod /etc/keepalived/keepalived_policy.te
@@ -148,17 +154,17 @@
     - name: Install keepalived SELinux policy
       ansible.builtin.command: >
         semodule -i /etc/keepalived/keepalived_policy.pp
-      
+
     #- name: Apply the new keepalived SELinux file context to ??
     #  command: >
-    #    restorecon -Rv 
+    #    restorecon -Rv
 
     when: keepalived_policy is changed
   become: true
-  when: 
+  when:
   - keepalived_rke2_enabled
   - ansible_os_family == 'RedHat'
   - ansible_selinux.status == 'enabled'
 
 # run restart keepalived now
-- meta: flush_handlers 
+- meta: flush_handlers

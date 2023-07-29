@@ -166,5 +166,12 @@
   - ansible_os_family == 'RedHat'
   - ansible_selinux.status == 'enabled'
 
+- name: start keepalived
+  ansible.builtin.systemd:
+    name: keepalived
+    state: started
+    enabled: true
+  become: true
+
 # run restart keepalived now
 - meta: flush_handlers
